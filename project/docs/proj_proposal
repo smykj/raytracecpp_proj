@@ -1,0 +1,3 @@
+My proposal is a small renderer, ray-traced non-realtime cpu side.
+It will accept a scene definition in xml, like light positition, object types and positions, materials and camera position. It will then output the result in some image format.
+For this I will use some xml parsing library, for example PugiXML, and some image library, for example FreeImage.
