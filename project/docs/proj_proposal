@@ -1,3 +1,6 @@
 My proposal is a small renderer, ray-traced non-realtime cpu side.
-It will accept a scene definition in xml, like light positition, object types and positions, materials and camera position. It will then output the result in some image format.
+It will accept a scene definition in xml, like light positition, object types and positions, materials and camera position. Then, for every pixel it will make rays and compute their intersection with the scene, and recursively reflect/refract.
+Part of the project will also be a minimal library for geometry primitives, such as points, vectors (geometrical), matrices, rays, etc. There are already libraries for things like that but considering how little i need it will be easier to write one than to learn how to use one.
+It will then output the result in some image format.
 For this I will use some xml parsing library, for example PugiXML, and some image library, for example FreeImage.
+UI will be CLI, called like './program path_to_scene_definition'.
