@@ -11,3 +11,11 @@ Release
 x64
 *.user
 CMakeSettings.json
+path_to_project
+vcpkg
+compile_commands.json
+cmake_install.cmake
+CMakeFiles
+CMakeCache.txt
+Makefile
+*.swp
