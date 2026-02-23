@@ -1,4 +1,5 @@
 #include "geometry.hpp"
+#include <FreeImage.h>
 #include <iostream>
 #include <pugixml.hpp>
 #include <vector>
@@ -93,4 +94,36 @@ int main() {
 
     std::cout << tool.name() << '\n';
   }
+  constexpr unsigned WIDTH = 256;
+  constexpr unsigned HEIGHT = 256;
+
+  FreeImage_Initialise();
+
+  FIBITMAP *bitmap = FreeImage_Allocate(WIDTH, HEIGHT, 24);
+  if (!bitmap) {
+    std::cerr << "allocate failed\n";
+    FreeImage_DeInitialise();
+    return 1;
+  }
+
+  for (unsigned y = 0; y < HEIGHT; ++y) {
+    for (unsigned x = 0; x < WIDTH; ++x) {
+      RGBQUAD colour{
+          .rgbBlue = 100, .rgbGreen = 100, .rgbRed = 100, .rgbReserved = 0};
+
+      FreeImage_SetPixelColor(bitmap, x, (HEIGHT - 1) - y, &colour);
+    }
+  }
+
+  const char *outputPath = "picture.png";
+  if (FreeImage_Save(FIF_PNG, bitmap, outputPath, PNG_DEFAULT)) {
+    std::cout << "saved: " << outputPath << "\n";
+  } else {
+    std::cerr << "save failed\n";
+  }
+
+  FreeImage_Unload(bitmap);
+  FreeImage_DeInitialise();
+
+  return 0;
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<!-- IMPORTANT: any solid must be defined after all the lights and materials have been defined -->
+
+	<image_conf width="720" height="480" filename="pics/named2.pfm" recursion_depth="8" antialiasing="2"/>
+	
+	<light position="-10 8 -6" color="1 1 1" intensity="1 1 1"/>
+    <light position="0 20 -3" color="1 1 1" intensity="0.3 0.3 0.3"/>
+	
+	<orennayar_material amb_coef="0.1" roughness="0.9" spec_coef="0.2" color="1 1 0.2" id="0" refr_index="1" transparency="0" dif_coef="0.7" rms="0.5"/>
+	<orennayar_material amb_coef="0.1" roughness="0.9" spec_coef="0.5" color="0.2 0.3 1" id="1" refr_index="1" transparency="0" dif_coef="0.4" rms="0.2"/>
+	<phong_material amb_coef="0.1" dif_coef="0.6" spec_coef="0.4" spec_expo="80" color="0.8 0.2 0.2" id="2" refr_index="1" transparency="0"/>
+	<orennayar_material amb_coef="0.05" roughness="0.1" spec_coef="0.9" color="1 1 1" id="3" refr_index="1.3" transparency="0.9" dif_coef="0.05" rms="0.05"/>
+	<phong_material amb_coef="0.1" dif_coef="0.6" spec_coef="0.4" spec_expo="81" color="0.9 0.9 0.9" id="4" refr_index="1" transparency="0"/>
+
+	<sphere centre="1.5 0.6 0.1" radius="0.5" material_id="3"/>
+
+	<sphere centre="0 0 0" radius="1" material_id="0"/>
+	<sphere centre="0.7 -0.7 -0.5" radius="0.6" material_id="1"/>
+	<sphere centre="-0.7 0.7 -0.8" radius="0.1" material_id="2"/>
+	<plane normal="0.2 1 0" d="-1.3" material_id="4"/>
+
+	
+	<camera position="0.6 0 -5.6" direction="0 -0.03 1" fov="40" up="0 1 0" background_color="0.1 0.2 0.3"/>
+</configuration>

@@ -26,5 +26,6 @@ endif()
 
 
 find_package(pugixml CONFIG REQUIRED)
+find_package(freeimage CONFIG REQUIRED)
 
 add_subdirectory(src)
