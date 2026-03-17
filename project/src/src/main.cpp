@@ -1,4 +1,5 @@
 #include "geometry.hpp"
+#include "scene_hierarchy.hpp"
 #include <FreeImage.h>
 #include <iostream>
 #include <pugixml.hpp>
@@ -9,7 +10,7 @@ struct temp_BRDF {
   double refraction_index;
   double critical_angle;
   double specular_coefficient;
-  vector color;
+  vector_t color;
   double ambient_coefficient;
   double diffuse_coefficient;
   // todo: setting refraction_index should also set critical_angle
@@ -18,17 +19,17 @@ struct temp_BRDF {
 };
 
 struct temp_light {
-  point position; // should be "point" not temp_vec3d
-  vector color;
-  vector intensity;
+  point_t position; // should be "point" not temp_vec3d
+  vector_t color;
+  vector_t intensity;
   // and constructor
 };
 
 struct temp_camera {
-  point position; // should be point
-  vector direction;
-  vector up;
-  vec2i screen_dimensions;
+  point_t position; // should be point
+  vector_t direction;
+  vector_t up;
+  vec2i_t screen_dimensions;
   float field_of_view;
 };
 
@@ -37,29 +38,29 @@ struct temp_leaf_node {};
 struct temp_scene_hierarchy {
   temp_leaf_node root;
   int max_recursion_depth;
-  vector background_color;
+  vector_t background_color;
 };
 
 struct temp_pixel_unit {
   int antialias_dimension; // should be ""static"" - same for all instances
-  vec2i center_offset;
+  vec2i_t center_offset;
   // list of rays
   temp_scene_hierarchy sh;
   // random number generator
 };
 
 int main() {
-  vector v{1, 2, 3};
-  point p{1, 2, 3};
-  mat4d m{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+  vector_t v{1, 2, 3};
+  point_t p{1, 2, 3};
+  mat4d_t m{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 
-  vector tr = v * m;
-  point trp = p * m;
+  vector_t tr = v * m;
+  point_t trp = p * m;
 
   std::cout << "point: " << trp.x << " " << trp.y << " " << trp.z << '\n';
   std::cout << "vec: " << tr.x << " " << tr.y << " " << tr.z << '\n';
 
-  vector vec;
+  vector_t vec;
   vec.x = 3;
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_file("config2.xml");
