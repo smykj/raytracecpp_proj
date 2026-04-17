@@ -4,8 +4,9 @@
 
 #include <array>
 #include <cstddef>
+namespace raytracer {
 struct point_t;
-
+typedef std::array<double, 3> color_t;
 struct vec4d_t {
   // double x, y, z, w;
   std::array<double, 4> vec;
@@ -45,7 +46,7 @@ struct mat4d_t {
     return *this;
   }
   static mat4d_t identity() {
-    mat4d_t result; // again assuming its 0-initialized;
+    mat4d_t result; // todo: again assuming its 0-initialized;
     result[0][0] = 1;
     result[1][1] = 1;
     result[2][2] = 1;
@@ -74,6 +75,10 @@ struct vector_t {
   vector_t operator+(vector_t b);
   static double dot(vector_t a, vector_t b);
   static double dot(vector_t a, point_t b);
+  auto &operator*=(const mat4d_t rhs) {
+    *this = *this * rhs;
+    return *this;
+  }
 };
 
 struct point_t {
@@ -82,6 +87,10 @@ struct point_t {
   point_t operator*(mat4d_t m);
   vector_t operator-(point_t b);
   point_t operator+(vector_t v);
+  auto &operator*=(const mat4d_t rhs) {
+    *this = *this * rhs;
+    return *this;
+  }
 };
 
 struct ray_t {
@@ -90,3 +99,4 @@ struct ray_t {
   ray_t &transform(mat4d_t transformation);
   ray_t transformed(mat4d_t transformation);
 };
+} // namespace raytracer

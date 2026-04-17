@@ -1,12 +1,15 @@
+#pragma once
 #include "geometry.hpp"
-#include <array>
+// #include "solids.hpp"
+//  #include <array>
 #include <cfloat>
 #include <memory>
 #include <vector>
 
-typedef std::array<double, 3> color_t;
+namespace raytracer {
+// typedef std::array<double, 3> color_t;
 class SceneHierarchy;
-
+class Solids;
 class Node {
 public:
   SceneHierarchy *sh;
@@ -59,20 +62,17 @@ private:
 };
 
 class LeafNode : public Node {
-  Solids solid;
+  Solids *solid;
 
 public:
   // todo: decide on how to pass solid
-  LeafNode(SceneHierarchy *sceneHierarchy, Solids solid) : solid(solid) {
+  LeafNode(SceneHierarchy *sceneHierarchy, Solids *solid) : solid(solid) {
     sh = sceneHierarchy;
   }
 
   bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
                             color_t &result_color, int recursionDepth,
-                            point_t &result_intersection) {
-    return solid.RayIntersection(ray, sh, transformationToWorld, result_color,
-                                 recursionDepth, result_intersection);
-  }
+                            point_t &result_intersection);
 };
 
 class SceneHierarchy {
@@ -94,3 +94,4 @@ public:
     return result;
   }
 };
+} // namespace raytracer
