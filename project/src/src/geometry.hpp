@@ -1,12 +1,13 @@
 #pragma once
 
-// #include "mymathlib.hpp"
-
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 namespace raytracer {
 struct point_t;
-typedef std::array<double, 3> color_t;
+struct vector_t;
+// typedef std::array<double, 3> color_t;
 struct vec4d_t {
   // double x, y, z, w;
   std::array<double, 4> vec;
@@ -53,6 +54,19 @@ struct mat4d_t {
     result[3][3] = 1;
     return result;
   }
+
+  static mat4d_t axis_angle(vector_t axis, double angle);
+
+  static mat4d_t scale(double scale) {
+    mat4d_t result; // todo: again assuming its 0-initialized;
+    result[0][0] = scale;
+    result[1][1] = scale;
+    result[2][2] = scale;
+    result[3][3] = 1;
+    return result;
+  }
+
+  static mat4d_t create_translation(vector_t vec);
 };
 
 struct vec2i_t {
@@ -61,13 +75,20 @@ struct vec2i_t {
 
 struct vector_t {
   double x, y, z;
+  // vector_t(std::array<double, 3> val) {
+  //   x = val[0];
+  //   y = val[1];
+  //   z = val[2];
+  // }
+  // vector_t() = default;
   static vector_t zero();
   vector_t normalized();
   void normalize();
-  double length();
+  double length() const;
   vector_t operator*(mat4d_t m);
   vector_t operator*(double d);
   vector_t operator*(int i);
+  vector_t operator*(size_t i);
   vector_t operator/(int i);
   vector_t operator/(double d);
   vector_t operator-(vector_t b);
@@ -75,9 +96,25 @@ struct vector_t {
   vector_t operator+(vector_t b);
   static double dot(vector_t a, vector_t b);
   static double dot(vector_t a, point_t b);
+  static vector_t cross(vector_t a, vector_t b) {
+    vector_t result;
+    result.x = (a.y * b.z) - (a.z * b.y);
+    result.y = (a.z * b.x) - (a.x * b.z);
+    result.z = (a.x * b.y) - (a.y * b.x);
+    return result;
+  }
   auto &operator*=(const mat4d_t rhs) {
     *this = *this * rhs;
     return *this;
+  }
+
+  bool operator==(const vector_t rhs) const {
+    return rhs.x == this->x && rhs.y == this->y && rhs.z == this->z;
+  }
+
+  static double angle(const vector_t a, const vector_t b) {
+    auto temp = dot(a, b);
+    return std::acos(std::clamp(temp / (a.length() * b.length()), -1.0, 1.0));
   }
 };
 
@@ -85,7 +122,7 @@ struct point_t {
   double x, y, z;
   static point_t zero();
   point_t operator*(mat4d_t m);
-  vector_t operator-(point_t b);
+  vector_t operator-(point_t b) const;
   point_t operator+(vector_t v);
   auto &operator*=(const mat4d_t rhs) {
     *this = *this * rhs;

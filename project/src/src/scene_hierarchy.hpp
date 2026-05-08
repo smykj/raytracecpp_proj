@@ -1,6 +1,6 @@
 #pragma once
 #include "geometry.hpp"
-// #include "solids.hpp"
+#include "solids.hpp"
 //  #include <array>
 #include <cfloat>
 #include <memory>
@@ -13,13 +13,15 @@ class Solids;
 class Node {
 public:
   SceneHierarchy *sh;
-  bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
-                            color_t &color, int recursionDepth,
-                            point_t &intersection);
+  virtual ~Node() noexcept = default;
+  virtual bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
+                                    color_t &color, int recursionDepth,
+                                    point_t &intersection) const;
 };
 
 class InnerNode : public Node {
 public:
+  ~InnerNode() noexcept override = default;
   std::vector<std::shared_ptr<Node>> children;
   InnerNode(SceneHierarchy *sceneHierarchy, mat4d_t transformation)
       : transformation(transformation) {
@@ -28,9 +30,10 @@ public:
     inv_transformation = transformation.inverted();
   }
 
-  bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
-                            color_t &result_color, int recursionDepth,
-                            point_t &result_intersection) {
+  virtual bool
+  RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
+                       color_t &result_color, int recursionDepth,
+                       point_t &result_intersection) const override {
     transformationToWorld *= inv_transformation;
     ray_t myray = ray.transformed(transformation);
     result_intersection = point_t::zero();
@@ -62,17 +65,22 @@ private:
 };
 
 class LeafNode : public Node {
-  Solids *solid;
+  std::unique_ptr<Solids> solid;
+  // Solids *solid;
 
 public:
+  ~LeafNode() noexcept override = default;
   // todo: decide on how to pass solid
-  LeafNode(SceneHierarchy *sceneHierarchy, Solids *solid) : solid(solid) {
+  LeafNode() = default;
+  LeafNode(SceneHierarchy *sceneHierarchy, std::unique_ptr<Solids> solid)
+      : solid(std::move(solid)) {
     sh = sceneHierarchy;
   }
 
-  bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
-                            color_t &result_color, int recursionDepth,
-                            point_t &result_intersection);
+  virtual bool
+  RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
+                       color_t &result_color, int recursionDepth,
+                       point_t &result_intersection) const override;
 };
 
 class SceneHierarchy {
@@ -84,7 +92,7 @@ public:
   SceneHierarchy() : root(this, mat4d_t::identity()) {}
 
   bool RaySceneIntersection(ray_t ray, color_t &color,
-                            int recursionDepth = -1) {
+                            int recursionDepth = -1) const {
     point_t throwaway;
     bool result = root.RaySolidIntersection(ray, mat4d_t::identity(), color,
                                             recursionDepth, throwaway);
