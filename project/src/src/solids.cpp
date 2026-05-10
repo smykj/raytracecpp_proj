@@ -5,7 +5,9 @@ namespace raytracer {
 bool Solids::RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
                              mat4d_t transformation_to_world, color_t &color,
                              int recursion_depth, point_t &intersection) {
+  // std::cout << "DEPTH: " << recursion_depth << std::endl;
   bool inside = false;
+  // std::cout << "ray " << ray.origin << std::endl;
   vector_t normal;
   if (!RawIntersection(ray, intersection, normal, inside)) {
     color = {0, 0, 0};
@@ -24,6 +26,8 @@ bool Solids::RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
   color = MultiShade(normal, scene_hierarchy, intersection, -myray.direction);
 
   if (recursion_depth < scene_hierarchy->max_recursion_depth) {
+
+    // std::cout << "intersection " << intersection << std::endl;
     ray_t refl_ray = ray_t(
         intersection, (normal * 2 * vector_t::dot(normal, -myray.direction)) +
                           myray.direction);
@@ -35,6 +39,7 @@ bool Solids::RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
         (inside ? brdf->GetRefractionIndex() : 1 / brdf->GetRefractionIndex());
 
     if (brdf->specular_coefficient != 0) {
+      // std::cout << "reflection " << refl_ray.origin << std::endl;
       scene_hierarchy->RaySceneIntersection(refl_ray, reflection_color,
                                             recursion_depth + 1);
     }
@@ -52,6 +57,8 @@ bool Solids::RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
       vector_t t = (normal * number_one) - ((-myray.direction) * n12);
       t.normalize();
       ray_t refr_ray = ray_t(intersection, t);
+
+      // std::cout << "refraction " << refr_ray.origin << std::endl;
       scene_hierarchy->RaySceneIntersection(refr_ray, refraction_color,
                                             recursion_depth + 1);
       color = reflection_color * brdf->specular_coefficient +
@@ -68,6 +75,10 @@ color_t Solids::MultiShade(vector_t normal, SceneHierarchy *scene_hierarchy,
   for (auto &&light : *lights) {
     ray_t ray = ray_t(intersection, (light.position - intersection));
     color_t throwaway;
+
+#ifdef DEBUG
+    std::cout << "multi " << ray.origin << std::endl;
+#endif
     if (scene_hierarchy->RaySceneIntersection(ray, throwaway)) {
       continue; // shadow
     }

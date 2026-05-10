@@ -3,6 +3,7 @@
 #include "solids.hpp"
 //  #include <array>
 #include <cfloat>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -13,15 +14,15 @@ class Solids;
 class Node {
 public:
   SceneHierarchy *sh;
-  virtual ~Node() noexcept = default;
+  // virtual ~Node() noexcept = default;
   virtual bool RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
                                     color_t &color, int recursionDepth,
-                                    point_t &intersection) const;
+                                    point_t &intersection) const = 0;
 };
 
 class InnerNode : public Node {
 public:
-  ~InnerNode() noexcept override = default;
+  // ~InnerNode() noexcept override = default;
   std::vector<std::shared_ptr<Node>> children;
   InnerNode(SceneHierarchy *sceneHierarchy, mat4d_t transformation)
       : transformation(transformation) {
@@ -34,6 +35,7 @@ public:
   RaySolidIntersection(ray_t ray, mat4d_t transformationToWorld,
                        color_t &result_color, int recursionDepth,
                        point_t &result_intersection) const override {
+    // std::cout << "rr" << ray.origin << std::endl;
     transformationToWorld *= inv_transformation;
     ray_t myray = ray.transformed(transformation);
     result_intersection = point_t::zero();
@@ -55,7 +57,6 @@ public:
       result_intersection = intersection;
       result_color = color;
     }
-
     return result;
   }
 
@@ -69,8 +70,7 @@ class LeafNode : public Node {
   // Solids *solid;
 
 public:
-  ~LeafNode() noexcept override = default;
-  // todo: decide on how to pass solid
+  // ~LeafNode() noexcept override = default;
   LeafNode() = default;
   LeafNode(SceneHierarchy *sceneHierarchy, std::unique_ptr<Solids> solid)
       : solid(std::move(solid)) {
@@ -93,10 +93,16 @@ public:
 
   bool RaySceneIntersection(ray_t ray, color_t &color,
                             int recursionDepth = -1) const {
+    // std::cout << ray.origin << std::endl;
     point_t throwaway;
+    // std::cout << "ROOT CHILDREN: " << root.children.size() << std::endl;
     bool result = root.RaySolidIntersection(ray, mat4d_t::identity(), color,
                                             recursionDepth, throwaway);
+
+    // std::cout << "INSIDE RAY SCENE INTERSECTION 2" << std::endl;
     if (!result) {
+      // std::cout << "NO HIT " << ray.origin << " " << ray.direction <<
+      // std::endl;
       color = background_color;
     }
     return result;

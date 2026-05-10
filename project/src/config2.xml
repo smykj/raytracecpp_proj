@@ -2,7 +2,7 @@
 <configuration>
 <!-- IMPORTANT: any solid must be defined after all the lights and materials have been defined -->
 
-	<image_conf width="720" height="480" filename="pics/named2.pfm" recursion_depth="8" antialiasing="2"/>
+	<image_conf width="720" height="480" filename="pics/named2.png" recursion_depth="8" antialiasing="2"/>
 	
 	<light position="-10 8 -6" color="1 1 1" intensity="1 1 1"/>
     <light position="0 20 -3" color="1 1 1" intensity="0.3 0.3 0.3"/>

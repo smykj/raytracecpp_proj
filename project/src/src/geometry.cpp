@@ -11,58 +11,78 @@ vec4d_t mat4d_t::operator*(vec4d_t v) {
 }
 
 mat4d_t mat4d_t::inverted() {
-
   mat4d_t result;
-  double s0 = (mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]);
-  double s1 = (mat[0][0] * mat[1][2]) - (mat[1][0] * mat[0][2]);
-  double s2 = (mat[0][0] * mat[1][3]) - (mat[1][0] * mat[0][3]);
-  double s3 = (mat[0][1] * mat[1][2]) - (mat[1][1] * mat[0][2]);
-  double s4 = (mat[0][1] * mat[1][3]) - (mat[1][1] * mat[0][3]);
-  double s5 = (mat[0][2] * mat[1][3]) - (mat[1][2] * mat[0][3]);
+  double a = mat[0][0];
+  double b = mat[1][0];
+  double c = mat[2][0];
+  double d = mat[3][0];
+  double e = mat[0][1];
+  double f = mat[1][1];
+  double g = mat[2][1];
+  double h = mat[3][1];
+  double i = mat[0][2];
+  double j = mat[1][2];
+  double k = mat[2][2];
+  double l = mat[3][2];
+  double m = mat[0][3];
+  double n = mat[1][3];
+  double o = mat[2][3];
+  double p = mat[3][3];
 
-  double c0 = (mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]);
-  double c1 = (mat[0][0] * mat[1][2]) - (mat[1][0] * mat[0][2]);
-  double c2 = (mat[0][0] * mat[1][3]) - (mat[1][0] * mat[0][3]);
-  double c3 = (mat[0][1] * mat[1][2]) - (mat[1][1] * mat[0][2]);
-  double c4 = (mat[0][1] * mat[1][3]) - (mat[1][1] * mat[0][3]);
-  double c5 = (mat[0][2] * mat[1][3]) - (mat[1][2] * mat[0][3]);
+  double kp_lo = (k * p) - (l * o);
+  double jp_ln = (j * p) - (l * n);
+  double jo_kn = (j * o) - (k * n);
+  double ip_lm = (i * p) - (l * m);
+  double io_km = (i * o) - (k * m);
+  double in_jm = (i * n) - (j * m);
 
-  double det =
-      (s0 * c5) - (s1 * c4) + (s2 * c3) + (s3 * c2) - (s4 * c1) + (s5 * c0);
-  if (std::fabs(det) < 0.00001) {
-    return result; // assuming it to be 0-initialized, todo: check
-  }
+  double a11 = +((f * kp_lo) - (g * jp_ln) + (h * jo_kn));
+  double a12 = -((e * kp_lo) - (g * ip_lm) + (h * io_km));
+  double a13 = +((e * jp_ln) - (f * ip_lm) + (h * in_jm));
+  double a14 = -((e * jo_kn) - (f * io_km) + (g * in_jm));
 
-  double inv = 1.0 / det;
-  result[0][0] = ((mat[1][1] * c5) - (mat[1][2] * c4) + (mat[1][3] * c3)) * inv;
-  result[0][1] =
-      ((-mat[0][1] * c5) + (mat[0][2] * c4) - (mat[0][3] * c3)) * inv;
-  result[0][2] = ((mat[3][1] * s5) - (mat[3][2] * s4) + (mat[3][3] * s3)) * inv;
-  result[0][3] =
-      ((-mat[2][1] * s5) + (mat[2][2] * s4) - (mat[2][3] * s3)) * inv;
-  result[1][0] =
-      ((-mat[1][0] * c5) + (mat[1][2] * c2) - (mat[1][3] * c1)) * inv;
-  result[1][1] = ((mat[0][0] * c5) - (mat[0][2] * c2) + (mat[0][3] * c1)) * inv;
-  result[1][2] =
-      ((-mat[3][0] * s5) + (mat[3][2] * s2) - (mat[3][3] * s1)) * inv;
-  result[1][3] = ((mat[2][0] * s5) - (mat[2][2] * s2) + (mat[2][3] * s1)) * inv;
-  result[2][0] = ((mat[1][0] * c4) - (mat[1][1] * c2) + (mat[1][3] * c0)) * inv;
-  result[2][1] =
-      ((-mat[0][0] * c4) + (mat[0][1] * c2) - (mat[0][3] * c0)) * inv;
-  result[2][2] = ((mat[3][0] * s4) - (mat[3][1] * s2) + (mat[3][3] * s0)) * inv;
-  result[2][3] =
-      ((-mat[2][0] * s4) + (mat[2][1] * s2) - (mat[2][3] * s0)) * inv;
-  result[3][0] =
-      ((-mat[1][0] * c3) + (mat[1][1] * c1) - (mat[1][2] * c0)) * inv;
-  result[3][1] = ((mat[0][0] * c3) - (mat[0][1] * c1) + (mat[0][2] * c0)) * inv;
-  result[3][2] =
-      ((-mat[3][0] * s3) + (mat[3][1] * s1) - (mat[3][2] * s0)) * inv;
-  result[3][3] = ((mat[2][0] * s3) - (mat[2][1] * s1) + (mat[2][2] * s0)) * inv;
+  double det = (a * a11) + (b * a12) + (c * a13) + (d * a14);
+
+  double invDet = 1.0 / det;
+
+  result[0] = vec4d_t{a11, a12, a13, a14} * invDet;
+
+  result[1] = vec4d_t{-((b * kp_lo) - (c * jp_ln) + (d * jo_kn)),
+                      +((a * kp_lo) - (c * ip_lm) + (d * io_km)),
+                      -((a * jp_ln) - (b * ip_lm) + (d * in_jm)),
+                      +((a * jo_kn) - (b * io_km) + (c * in_jm))} *
+              invDet;
+
+  double gp_ho = (g * p) - (h * o);
+  double fp_hn = (f * p) - (h * n);
+  double fo_gn = (f * o) - (g * n);
+  double ep_hm = (e * p) - (h * m);
+  double eo_gm = (e * o) - (g * m);
+  double en_fm = (e * n) - (f * m);
+
+  result[2] = vec4d_t{+((b * gp_ho) - (c * fp_hn) + (d * fo_gn)),
+                      -((a * gp_ho) - (c * ep_hm) + (d * eo_gm)),
+                      +((a * fp_hn) - (b * ep_hm) + (d * en_fm)),
+                      -((a * fo_gn) - (b * eo_gm) + (c * en_fm))} *
+              invDet;
+
+  double gl_hk = (g * l) - (h * k);
+  double fl_hj = (f * l) - (h * j);
+  double fk_gj = (f * k) - (g * j);
+  double el_hi = (e * l) - (h * i);
+  double ek_gi = (e * k) - (g * i);
+  double ej_fi = (e * j) - (f * i);
+
+  result[3] = vec4d_t{-((b * gl_hk) - (c * fl_hj) + (d * fk_gj)),
+                      +((a * gl_hk) - (c * el_hi) + (d * ek_gi)),
+                      -((a * fl_hj) - (b * el_hi) + (d * ej_fi)),
+                      +((a * fk_gj) - (b * ek_gi) + (c * ej_fi))} *
+              invDet;
   return result;
 }
 
 mat4d_t mat4d_t::axis_angle(vector_t axis, double angle) {
-  mat4d_t result; // todo assuming 0 initialization
+  mat4d_t result = mat4d_t::identity();
   axis.normalize();
   double cos = std::cos(-angle);
   double sin = std::sin(-angle);
@@ -110,7 +130,9 @@ vector_t vector_t::normalized() { return *this / this->length(); }
 
 void vector_t::normalize() { *this = this->normalized(); }
 
-double vector_t::length() const { return vector_t::dot(*this, *this); }
+double vector_t::length() const {
+  return std::sqrt(vector_t::dot(*this, *this));
+}
 
 vector_t vector_t::operator*(mat4d_t m) {
   vec4d_t v{x, y, z, 0};
@@ -118,13 +140,16 @@ vector_t vector_t::operator*(mat4d_t m) {
   return {res.vec[0], res.vec[1], res.vec[2]};
 }
 
-vector_t vector_t::operator*(double d) { return {x * d, y * d, z * d}; }
+// vector_t vector_t::operator*(double d) { return {x * d, y * d, z * d}; }
 
-vector_t vector_t::operator*(int i) { return {x * i, y * i, z * i}; }
+// vector_t vector_t::operator*(int i) { return {x * i, y * i, z * i}; }
 
-vector_t vector_t::operator/(int i) { return *this / (double)i; }
+// template <typename T> vector_t vector_t::operator*(T i) {
+// return {x * i, y * i, z * i};
+// }
+// vector_t vector_t::operator/(int i) { return *this / (double)i; }
 
-vector_t vector_t::operator/(double d) { return *this * (1 / d); }
+// vector_t vector_t::operator/(double d) { return *this * (1 / d); }
 
 vector_t vector_t::operator-(vector_t b) { return {x - b.x, y - b.y, z - b.z}; }
 
@@ -157,7 +182,7 @@ mat4d_t mat4d_t::create_translation(vector_t vec) {
 
   mat4d_t result = identity();
   result[3] = vec4d_t{vec.x, vec.y, vec.z, 1};
-  return result;
+  return result.transposed();
 }
 
 } // namespace raytracer

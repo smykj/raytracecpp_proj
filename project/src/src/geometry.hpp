@@ -4,19 +4,22 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <ostream>
 namespace raytracer {
 struct point_t;
 struct vector_t;
-// typedef std::array<double, 3> color_t;
 struct vec4d_t {
-  // double x, y, z, w;
   std::array<double, 4> vec;
   double dot(vec4d_t b);
-  // auto &operator[](this auto &self, size_t i) {
-  //   return self.vec[i];
-  // } // todo: understand this better
   const auto &operator[](size_t i) const { return vec[i]; }
   auto &operator[](size_t i) { return vec[i]; }
+  friend std::ostream &operator<<(std::ostream &os, const vec4d_t &v) {
+    os << '{' << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << '}';
+    return os;
+  }
+  template <typename T> vec4d_t operator*(T i) {
+    return {vec[0] * i, vec[1] * i, vec[2] * i, vec[3] * i};
+  }
 };
 
 struct mat4d_t {
@@ -46,8 +49,11 @@ struct mat4d_t {
     *this = *this * rhs;
     return *this;
   }
+  static mat4d_t zero() {
+    return {{{{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}};
+  }
   static mat4d_t identity() {
-    mat4d_t result; // todo: again assuming its 0-initialized;
+    mat4d_t result = zero();
     result[0][0] = 1;
     result[1][1] = 1;
     result[2][2] = 1;
@@ -58,7 +64,7 @@ struct mat4d_t {
   static mat4d_t axis_angle(vector_t axis, double angle);
 
   static mat4d_t scale(double scale) {
-    mat4d_t result; // todo: again assuming its 0-initialized;
+    mat4d_t result = zero();
     result[0][0] = scale;
     result[1][1] = scale;
     result[2][2] = scale;
@@ -67,6 +73,21 @@ struct mat4d_t {
   }
 
   static mat4d_t create_translation(vector_t vec);
+
+  friend std::ostream &operator<<(std::ostream &os, const mat4d_t &m) {
+    os << "{\n " << m[0] << ", \n " << m[1] << ", \n " << m[2] << ", \n "
+       << m[3] << "\n}";
+    return os;
+  }
+
+  mat4d_t transposed() {
+    for (int i = 0; i < 4; ++i) {
+      for (int j = i + 1; j < 4; ++j) {
+        std::swap(mat[i][j], mat[j][i]);
+      }
+    }
+    return *this;
+  }
 };
 
 struct vec2i_t {
@@ -86,11 +107,17 @@ struct vector_t {
   void normalize();
   double length() const;
   vector_t operator*(mat4d_t m);
-  vector_t operator*(double d);
-  vector_t operator*(int i);
-  vector_t operator*(size_t i);
-  vector_t operator/(int i);
-  vector_t operator/(double d);
+  // vector_t operator*(double d);
+  template <typename T> vector_t operator*(T i) {
+    return {x * i, y * i, z * i};
+  }
+  template <typename T> vector_t operator/(T i) {
+    return {x / i, y / i, z / i};
+  }
+  // vector_t operator*(int i);
+  // vector_t operator*(size_t i);
+  // vector_t operator/(int i);
+  // vector_t operator/(double d);
   vector_t operator-(vector_t b);
   vector_t operator-();
   vector_t operator+(vector_t b);
@@ -116,6 +143,10 @@ struct vector_t {
     auto temp = dot(a, b);
     return std::acos(std::clamp(temp / (a.length() * b.length()), -1.0, 1.0));
   }
+  friend std::ostream &operator<<(std::ostream &os, const vector_t &v) {
+    os << '{' << v.x << ", " << v.y << ", " << v.z << '}';
+    return os;
+  }
 };
 
 struct point_t {
@@ -127,6 +158,10 @@ struct point_t {
   auto &operator*=(const mat4d_t rhs) {
     *this = *this * rhs;
     return *this;
+  }
+  friend std::ostream &operator<<(std::ostream &os, const point_t &p) {
+    os << '{' << p.x << ", " << p.y << ", " << p.z << '}';
+    return os;
   }
 };
 

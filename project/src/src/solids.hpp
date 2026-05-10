@@ -4,14 +4,15 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #include <memory>
 #include <numbers>
+#include <print>
 #include <tgmath.h>
 #include <utility>
 #include <vector>
 namespace raytracer {
 class SceneHierarchy;
-// todo: add pragma once everywhere
 
 struct color_t {
   std::array<double, 3> arr;
@@ -28,6 +29,11 @@ struct color_t {
   color_t operator*(double scalar) const {
     return color_t{(*this)[0] * scalar, (*this)[1] * scalar,
                    (*this)[2] * scalar};
+  }
+
+  color_t operator+=(color_t rhs) {
+    *this = *this + rhs;
+    return *this;
   }
 };
 struct Light {
@@ -84,6 +90,7 @@ public:
 
   color_t Shade(vector_t normal, vector_t light_dir, vector_t view_dir,
                 const Light &light) override {
+    // return {1, 0, 0};
     if (vector_t::dot(normal, light_dir) < 0) {
       return {0, 0, 0};
     }
@@ -104,7 +111,7 @@ public:
       result = diffuse + specular;
     }
     return result;
-  } // todo: refactor after making color_t a normal type
+  }
 };
 class OrenNayar : public BRDF {
 public:
@@ -148,7 +155,7 @@ public:
                           (std::numbers::pi * rms * rms * pow(cos(alpha), 4));
     color_t specular = light.color * light.intensity * color_scalar;
     return diffuse * diffuse_coefficient + specular * specular_coefficient;
-  } // todo: refactor after making color_t a normal type
+  }
 };
 
 // todo: when multithreading, make most shared resources const&, for example the
@@ -178,15 +185,25 @@ public:
       : Solids(std::move(brdf), lights) {}
   bool RawIntersection(ray_t ray, point_t &intersection, vector_t &normal,
                        bool &inside) override {
+
+#ifdef DEBUG
+    std::cout << "inside sphere " << ray.origin << " " << ray.direction
+              << std::endl;
+#endif
     vector_t vvec = point_t::zero() - ray.origin;
     double tzero = vector_t::dot(vvec, ray.direction);
     double dist_squared = vector_t::dot(vvec, vvec) - (tzero * tzero);
     double inclination_squared = 1 - dist_squared;
 
+    // std::cout << "vec here " << ray.origin << std::endl;
+    // std::cout << "here" << inclination_squared << " " << tzero << std::endl;
     if (inclination_squared <= 0 || tzero < 0) {
       intersection = point_t::zero();
       normal = vector_t::zero();
       inside = false;
+#ifdef DEBUG
+      std::println("sphere result false");
+#endif
       return false;
     }
 
@@ -198,6 +215,7 @@ public:
 
     double t;
     if (inside) {
+      // std::println("happens");
       t = (tzero + inclination > tzero - inclination ? tzero + inclination
                                                      : tzero - inclination);
       intersection = ray.origin + ray.direction * t;
@@ -217,13 +235,23 @@ public:
           vector_t(intersection.x, intersection.y, intersection.z).normalized();
     }
 
-    if (t < 0.0000001) {
+    if (t < 0.0001) {
       intersection = point_t::zero();
       normal = vector_t::zero();
       inside = false;
+#ifdef DEBUG
+      std::println("sphere result false");
+#endif
       return false;
     }
-
+    // if (!std::isnan(ray.direction.x)) {
+    // std::cout << "WIN" << std::endl;
+    // }
+    // std::cout << "raw intersection " << intersection << std::endl;
+#ifdef DEBUG
+    std::println("sphere result true");
+    std::cout << "sphere result intersection " << intersection << std::endl;
+#endif
     return true;
   }
 };
@@ -241,7 +269,7 @@ public:
       intersection = point_t::zero();
       return false;
     }
-
+    std::cout << "happens";
     double t = -vector_t::dot(normal, ray.origin) /
                vector_t::dot(normal, ray.direction);
 
