@@ -61,9 +61,15 @@ bool Solids::RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
       // std::cout << "refraction " << refr_ray.origin << std::endl;
       scene_hierarchy->RaySceneIntersection(refr_ray, refraction_color,
                                             recursion_depth + 1);
-      color = reflection_color * brdf->specular_coefficient +
-              color * (1 - brdf->transparency) +
-              refraction_color * brdf->transparency;
+      // if (brdf->transparency > 0.5) {
+      // std::cout << refraction_color << std::endl;
+      // }
+      // color = reflection_color * brdf->specular_coefficient +
+      // color * (1 - brdf->transparency) +
+      // refraction_color * brdf->transparency;
+      color = ((color + (reflection_color * brdf->specular_coefficient)) *
+               (1 - brdf->transparency)) +
+              (refraction_color * brdf->transparency);
     }
   }
   return true;

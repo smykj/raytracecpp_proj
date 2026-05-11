@@ -35,6 +35,11 @@ struct color_t {
     *this = *this + rhs;
     return *this;
   }
+
+  friend std::ostream &operator<<(std::ostream &os, const color_t &v) {
+    os << '{' << v[0] << ", " << v[1] << ", " << v[2] << ", " << '}';
+    return os;
+  }
 };
 struct Light {
   color_t intensity;
@@ -211,7 +216,7 @@ public:
 
     // checks if the origin is inside unit sphere
     inside = sqrt(pow(ray.origin.x, 2) + pow(ray.origin.y, 2) +
-                  pow(ray.origin.z, 2)) < 1.000001;
+                  pow(ray.origin.z, 2)) < 1.0001;
 
     double t;
     if (inside) {
@@ -221,8 +226,8 @@ public:
       intersection = ray.origin + ray.direction * t;
       // todo: check if this normal gives correct result, same for inside of the
       // else if block below
-      normal = -vector_t(intersection.x, intersection.y, intersection.z)
-                    .normalized();
+      normal = -(vector_t(intersection.x, intersection.y, intersection.z)
+                     .normalized());
     } else if (tzero + inclination < tzero - inclination) {
       t = tzero + inclination;
       intersection = ray.origin + ray.direction * (tzero + inclination);
@@ -265,11 +270,11 @@ public:
                        bool &inside) override {
     inside = false;
     normal = vector_t(0, 1, 0);
-    if (abs(vector_t::dot(normal, ray.direction)) < 0.0000001) {
-      intersection = point_t::zero();
-      return false;
-    }
-    std::cout << "happens";
+    // if (abs(vector_t::dot(normal, ray.direction)) < 0.0000001) {
+    //   intersection = point_t::zero();
+    //   return false;
+    // }
+    // std::cout << "happens";
     double t = -vector_t::dot(normal, ray.origin) /
                vector_t::dot(normal, ray.direction);
 

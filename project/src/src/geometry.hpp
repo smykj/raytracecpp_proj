@@ -37,7 +37,8 @@ struct mat4d_t {
       for (int j = 0; j < 4; j++) {
         num = 0;
         for (int k = 0; k < 4; k++) {
-          num += (*this)[i][k] * rhs[k][j];
+          // num += (*this)[i][k] * rhs[k][j];
+          num += (*this)[k][j] * rhs[i][k];
         }
         result[i][j] = num;
       }

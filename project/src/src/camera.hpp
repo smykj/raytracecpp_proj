@@ -1,13 +1,13 @@
 #pragma once
-#include <mutex>
-#include <optional>
-#include <queue>
 #include "geometry.hpp"
 #include "scene_hierarchy.hpp"
 #include <FreeImage.h>
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <mutex>
+#include <optional>
+#include <queue>
 #include <random>
 #include <thread>
 namespace raytracer {
@@ -145,8 +145,7 @@ struct ComputeUnit {
           .rgbBlue = blue, .rgbGreen = green, .rgbRed = red, .rgbReserved = 0};
 
       FreeImage_SetPixelColor(img.get(), pixel.center_offset.x + (width / 2),
-                              height - pixel.center_offset.y - (height / 2) - 1,
-                              &colour);
+                              pixel.center_offset.y + (height / 2), &colour);
     }
   }
 };
@@ -197,8 +196,8 @@ struct Camera {
 
     std::queue<ComputeUnit> cu;
     // cu.reserve(
-        // (screen_dimensions.x * screen_dimensions.y) /
-        // (ComputeUnit::compute_dimension * ComputeUnit::compute_dimension));
+    // (screen_dimensions.x * screen_dimensions.y) /
+    // (ComputeUnit::compute_dimension * ComputeUnit::compute_dimension));
 
     // std::cout << "dv" << deltav << std::endl;
     // std::cout << "delt" << delta << std::endl;
@@ -211,9 +210,8 @@ struct Camera {
            y += ComputeUnit::compute_dimension) {
         // std::cout << "ur" << unit_right << std::endl;
         // std::cout << "up" << unit_up << std::endl;
-        cu.push(ComputeUnit(bitmap, scene_hierarchy, position,
-                                 vec2i_t(x, y), unit_up, unit_right,
-                                 direction));
+        cu.push(ComputeUnit(bitmap, scene_hierarchy, position, vec2i_t(x, y),
+                            unit_up, unit_right, direction));
         // cu.push_back(ComputeUnit{.fi = bitmap.get(),
         //                          .scene_hierarchy = &scene_hierarchy,
         //                          .of_view = position,
@@ -228,17 +226,17 @@ struct Camera {
     size_t counter = 0;
 
     // todo: parallelism
-    // std::for_each(std::execution::par_unseq,cu.begin(), cu.end(), [&](ComputeUnit &unit) {
-     // unit.FillRegion(bitmap);
+    // std::for_each(std::execution::par_unseq,cu.begin(), cu.end(),
+    // [&](ComputeUnit &unit) { unit.FillRegion(bitmap);
     // });
-    
+
     std::vector<std::jthread> pool;
     size_t poolsize = std::thread::hardware_concurrency();
     pool.reserve(poolsize);
     std::mutex popmtx;
-    auto parapop = [&]() -> std::optional<ComputeUnit>{
+    auto parapop = [&]() -> std::optional<ComputeUnit> {
       popmtx.lock();
-      if (cu.size()==0){
+      if (cu.size() == 0) {
         popmtx.unlock();
         return {};
       }
@@ -249,23 +247,21 @@ struct Camera {
       return item;
     };
 
-    for(size_t i = 0; i < poolsize; ++i){
-      pool.emplace_back([=](){
-        while(auto unit = parapop()){
+    for (size_t i = 0; i < poolsize; ++i) {
+      pool.emplace_back([=]() {
+        while (auto unit = parapop()) {
           unit.value().FillRegion(bitmap);
         }
       });
     }
-    
-
 
     std::cout << "COMPUTE UNITS: " << cu.size() << std::endl;
     // for (auto &&unit : cu) {
 #ifndef DEBUG
-      // std::cout << "\r" << counter * 100 / cu.size() << "%    ";
+    // std::cout << "\r" << counter * 100 / cu.size() << "%    ";
 #endif
-      // unit.FillRegion(bitmap);
-      // ++counter;
+    // unit.FillRegion(bitmap);
+    // ++counter;
     // }
     std::cout << "\n";
 
