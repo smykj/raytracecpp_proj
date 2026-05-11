@@ -1,4 +1,7 @@
 #pragma once
+#include <mutex>
+#include <optional>
+#include <queue>
 #include "geometry.hpp"
 #include "scene_hierarchy.hpp"
 #include <FreeImage.h>
@@ -6,6 +9,7 @@
 #include <cstddef>
 #include <iostream>
 #include <random>
+#include <thread>
 namespace raytracer {
 
 struct PixelUnit {
@@ -71,7 +75,7 @@ struct PixelUnit {
 
 double counter = 0;
 struct ComputeUnit {
-  const static int compute_dimension = 1; // todo set to 16
+  const static int compute_dimension = 16; // todo set to 16
   vec2i_t center_offset;
   std::vector<PixelUnit> region;
   ComputeUnit() = default;
@@ -191,10 +195,10 @@ struct Camera {
       return nullptr;
     }
 
-    std::vector<ComputeUnit> cu;
-    cu.reserve(
-        (screen_dimensions.x * screen_dimensions.y) /
-        (ComputeUnit::compute_dimension * ComputeUnit::compute_dimension));
+    std::queue<ComputeUnit> cu;
+    // cu.reserve(
+        // (screen_dimensions.x * screen_dimensions.y) /
+        // (ComputeUnit::compute_dimension * ComputeUnit::compute_dimension));
 
     // std::cout << "dv" << deltav << std::endl;
     // std::cout << "delt" << delta << std::endl;
@@ -207,7 +211,7 @@ struct Camera {
            y += ComputeUnit::compute_dimension) {
         // std::cout << "ur" << unit_right << std::endl;
         // std::cout << "up" << unit_up << std::endl;
-        cu.push_back(ComputeUnit(bitmap, scene_hierarchy, position,
+        cu.push(ComputeUnit(bitmap, scene_hierarchy, position,
                                  vec2i_t(x, y), unit_up, unit_right,
                                  direction));
         // cu.push_back(ComputeUnit{.fi = bitmap.get(),
@@ -224,17 +228,45 @@ struct Camera {
     size_t counter = 0;
 
     // todo: parallelism
-    // std::for_each(cu.begin(), cu.end(), [&](ComputeUnit &unit) {
-    //  unit.FillRegion(bitmap.get());
-    //});
+    // std::for_each(std::execution::par_unseq,cu.begin(), cu.end(), [&](ComputeUnit &unit) {
+     // unit.FillRegion(bitmap);
+    // });
+    
+    std::vector<std::jthread> pool;
+    size_t poolsize = std::thread::hardware_concurrency();
+    pool.reserve(poolsize);
+    std::mutex popmtx;
+    auto parapop = [&]() -> std::optional<ComputeUnit>{
+      popmtx.lock();
+      if (cu.size()==0){
+        popmtx.unlock();
+        return {};
+      }
+      ComputeUnit item = cu.front();
+      cu.pop();
+      std::cout << cu.size() << "\n";
+      popmtx.unlock();
+      return item;
+    };
+
+    for(size_t i = 0; i < poolsize; ++i){
+      pool.emplace_back([=](){
+        while(auto unit = parapop()){
+          unit.value().FillRegion(bitmap);
+        }
+      });
+    }
+    
+
+
     std::cout << "COMPUTE UNITS: " << cu.size() << std::endl;
-    for (auto &&unit : cu) {
+    // for (auto &&unit : cu) {
 #ifndef DEBUG
       // std::cout << "\r" << counter * 100 / cu.size() << "%    ";
 #endif
-      unit.FillRegion(bitmap);
-      ++counter;
-    }
+      // unit.FillRegion(bitmap);
+      // ++counter;
+    // }
     std::cout << "\n";
 
     return bitmap;
