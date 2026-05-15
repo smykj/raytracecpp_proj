@@ -178,7 +178,6 @@ struct Camera {
         }
       });
     }
-    std::cout << "\n";
     return bitmap;
   }
 };
