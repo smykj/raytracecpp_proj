@@ -1,13 +1,11 @@
 #pragma once
 #include "geometry.hpp"
-// #include "scene_hierarchy.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <numbers>
-#include <print>
 #include <tgmath.h>
 #include <utility>
 #include <vector>
@@ -95,7 +93,6 @@ public:
 
   color_t Shade(vector_t normal, vector_t light_dir, vector_t view_dir,
                 const Light &light) override {
-    // return {1, 0, 0};
     if (vector_t::dot(normal, light_dir) < 0) {
       return {0, 0, 0};
     }
@@ -163,15 +160,12 @@ public:
   }
 };
 
-// todo: when multithreading, make most shared resources const&, for example the
-// lights vector
 class Solids {
 public:
   Solids(std::shared_ptr<BRDF> brdf, const std::vector<Light> &lights)
       : brdf(std::move(brdf)), lights(&lights) {}
   virtual ~Solids() noexcept = default;
-  std::shared_ptr<BRDF>
-      brdf; // todo: think about which type of reference to use
+  std::shared_ptr<BRDF> brdf;
   const std::vector<Light> *lights;
 
   bool RayIntersection(ray_t ray, SceneHierarchy *scene_hierarchy,
@@ -185,47 +179,32 @@ public:
 
 class Sphere : public Solids {
 public:
-  // todo: think about how to pass the lights vector around
   Sphere(std::shared_ptr<BRDF> brdf, const std::vector<Light> &lights)
       : Solids(std::move(brdf), lights) {}
   bool RawIntersection(ray_t ray, point_t &intersection, vector_t &normal,
                        bool &inside) override {
 
-#ifdef DEBUG
-    std::cout << "inside sphere " << ray.origin << " " << ray.direction
-              << std::endl;
-#endif
     vector_t vvec = point_t::zero() - ray.origin;
     double tzero = vector_t::dot(vvec, ray.direction);
     double dist_squared = vector_t::dot(vvec, vvec) - (tzero * tzero);
     double inclination_squared = 1 - dist_squared;
-
-    // std::cout << "vec here " << ray.origin << std::endl;
-    // std::cout << "here" << inclination_squared << " " << tzero << std::endl;
     if (inclination_squared <= 0 || tzero < 0) {
       intersection = point_t::zero();
       normal = vector_t::zero();
       inside = false;
-#ifdef DEBUG
-      std::println("sphere result false");
-#endif
       return false;
     }
 
     double inclination = sqrt(inclination_squared);
 
-    // checks if the origin is inside unit sphere
     inside = sqrt(pow(ray.origin.x, 2) + pow(ray.origin.y, 2) +
                   pow(ray.origin.z, 2)) < 1.0001;
 
     double t;
     if (inside) {
-      // std::println("happens");
       t = (tzero + inclination > tzero - inclination ? tzero + inclination
                                                      : tzero - inclination);
       intersection = ray.origin + ray.direction * t;
-      // todo: check if this normal gives correct result, same for inside of the
-      // else if block below
       normal = -(vector_t(intersection.x, intersection.y, intersection.z)
                      .normalized());
     } else if (tzero + inclination < tzero - inclination) {
@@ -244,19 +223,8 @@ public:
       intersection = point_t::zero();
       normal = vector_t::zero();
       inside = false;
-#ifdef DEBUG
-      std::println("sphere result false");
-#endif
       return false;
     }
-    // if (!std::isnan(ray.direction.x)) {
-    // std::cout << "WIN" << std::endl;
-    // }
-    // std::cout << "raw intersection " << intersection << std::endl;
-#ifdef DEBUG
-    std::println("sphere result true");
-    std::cout << "sphere result intersection " << intersection << std::endl;
-#endif
     return true;
   }
 };
@@ -270,11 +238,6 @@ public:
                        bool &inside) override {
     inside = false;
     normal = vector_t(0, 1, 0);
-    // if (abs(vector_t::dot(normal, ray.direction)) < 0.0000001) {
-    //   intersection = point_t::zero();
-    //   return false;
-    // }
-    // std::cout << "happens";
     double t = -vector_t::dot(normal, ray.origin) /
                vector_t::dot(normal, ray.direction);
 

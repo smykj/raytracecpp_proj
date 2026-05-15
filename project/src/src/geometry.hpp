@@ -37,7 +37,6 @@ struct mat4d_t {
       for (int j = 0; j < 4; j++) {
         num = 0;
         for (int k = 0; k < 4; k++) {
-          // num += (*this)[i][k] * rhs[k][j];
           num += (*this)[k][j] * rhs[i][k];
         }
         result[i][j] = num;
@@ -97,28 +96,17 @@ struct vec2i_t {
 
 struct vector_t {
   double x, y, z;
-  // vector_t(std::array<double, 3> val) {
-  //   x = val[0];
-  //   y = val[1];
-  //   z = val[2];
-  // }
-  // vector_t() = default;
   static vector_t zero();
   vector_t normalized();
   void normalize();
   double length() const;
   vector_t operator*(mat4d_t m);
-  // vector_t operator*(double d);
   template <typename T> vector_t operator*(T i) {
     return {x * i, y * i, z * i};
   }
   template <typename T> vector_t operator/(T i) {
     return {x / i, y / i, z / i};
   }
-  // vector_t operator*(int i);
-  // vector_t operator*(size_t i);
-  // vector_t operator/(int i);
-  // vector_t operator/(double d);
   vector_t operator-(vector_t b);
   vector_t operator-();
   vector_t operator+(vector_t b);

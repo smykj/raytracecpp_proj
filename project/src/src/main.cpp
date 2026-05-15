@@ -1,5 +1,4 @@
 
-// #define DEBUG
 #include "camera.hpp"
 #include "geometry.hpp"
 #include "scene_hierarchy.hpp"
@@ -8,9 +7,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
-#include <print>
 #include <pugixml.hpp>
-#include <random>
 #include <string>
 #include <vector>
 template <typename T> T xmlstrtovec3(const std::string &input) {
@@ -31,22 +28,6 @@ int main(int argc, char **argv) {
   if (argc != 2) {
     std::cout << "wrong amount of arguments, provide name of config file\n";
   }
-
-  // point_t test = {1, 2, 3};
-  // std::cout << test << std::endl;
-  // mat4d_t move = mat4d_t::create_translation(vector_t{-1, -2, -3});
-  // std::cout << move << std::endl;
-  // std::cout << test * move << std::endl;
-  // vector_t test = {100, 100, 100};
-  // std::cout << test.normalized() << std::endl;
-  // std::cout << test.length() << std::endl;
-  // return 0;
-
-  // mat4d_t test = mat4d_t::identity();
-  // test = test.inverted();
-  // std::cout << test << std::endl;
-  // return 0;
-  // std::string config_file_name = argv[1];
   std::vector<std::shared_ptr<BRDF>> brdfs;
   std::vector<Light> lights;
   Camera cam = Camera();
@@ -71,7 +52,6 @@ int main(int argc, char **argv) {
   PixelUnit::antialias_dimension =
       std::stoi(image_conf.attribute("antialiasing").value());
 
-  std::println("HERE");
   auto phongs = config.children("phong_material");
   for (auto &&phong : phongs) {
     std::shared_ptr<Phong> pm = std::make_shared<Phong>(Phong());
@@ -87,7 +67,6 @@ int main(int argc, char **argv) {
     brdfs[id] = pm;
   }
 
-  std::println("HERE2");
   auto orens = config.children("orennayar_material");
   for (auto &&oren : orens) {
     std::shared_ptr<OrenNayar> on = std::make_shared<OrenNayar>(OrenNayar());
@@ -104,7 +83,6 @@ int main(int argc, char **argv) {
     brdfs[id] = on;
   }
 
-  std::println("HERE3");
   auto lts = config.children("light");
   for (auto &&lt : lts) {
     Light light = Light();
@@ -114,7 +92,6 @@ int main(int argc, char **argv) {
     lights.push_back(light);
   }
 
-  std::println("HERE4");
   auto spheres = config.children("sphere");
   for (auto &&sphere : spheres) {
     vector_t centre =
@@ -125,7 +102,6 @@ int main(int argc, char **argv) {
     mat4d_t c = mat4d_t::scale(radius);
     mat4d_t e = mat4d_t::create_translation(centre);
     mat4d_t m = c * e;
-    std::cout << "translate: " << m.inverted() << std::endl;
     std::shared_ptr<InnerNode> tr =
         std::make_shared<InnerNode>(InnerNode(&scene_hierarchy, m.inverted()));
     std::shared_ptr<LeafNode> lf = std::make_shared<LeafNode>(
@@ -133,10 +109,8 @@ int main(int argc, char **argv) {
                  std::make_unique<Sphere>(Sphere(brdfs[material_id], lights))));
     tr->children.push_back(lf);
     scene_hierarchy.root.children.push_back(tr);
-    std::cout << "OUUUGH" << scene_hierarchy.root.children.size() << std::endl;
   }
 
-  std::println("HERE5");
   auto planes = config.children("plane");
 
   for (auto &&plane : planes) {
@@ -159,12 +133,8 @@ int main(int argc, char **argv) {
                  std::make_unique<Plane>(Plane(brdfs[material_id], lights))));
     tr->children.push_back(lf);
     scene_hierarchy.root.children.push_back(tr);
-    std::cout << "plane" << scene_hierarchy.root.children.size() << std::endl;
   }
 
-#ifdef DEBUG
-  std::println("HERE6");
-#endif
   auto camera = config.child("camera");
   point_t position =
       xmlstrtovec3<point_t>(camera.attribute("position").value());
@@ -177,12 +147,8 @@ int main(int argc, char **argv) {
   cam = Camera(position, direction, vec2i_t(width, height), fov, up);
   scene_hierarchy.background_color = background_color;
 
-  std::println("HERE7");
-  std::cout << "OUUUGH" << scene_hierarchy.root.children.size() << std::endl;
-
   auto image = cam.Raycast(scene_hierarchy);
 
-  std::cout << "MAXXXXX: " << counter << std::endl;
   const char *outputPath = filename;
   if (FreeImage_Save(FIF_PNG, image.get(), filename, PNG_DEFAULT) != 0) {
     std::cout << "saved: " << outputPath << "\n";

@@ -140,17 +140,6 @@ vector_t vector_t::operator*(mat4d_t m) {
   return {res.vec[0], res.vec[1], res.vec[2]};
 }
 
-// vector_t vector_t::operator*(double d) { return {x * d, y * d, z * d}; }
-
-// vector_t vector_t::operator*(int i) { return {x * i, y * i, z * i}; }
-
-// template <typename T> vector_t vector_t::operator*(T i) {
-// return {x * i, y * i, z * i};
-// }
-// vector_t vector_t::operator/(int i) { return *this / (double)i; }
-
-// vector_t vector_t::operator/(double d) { return *this * (1 / d); }
-
 vector_t vector_t::operator-(vector_t b) { return {x - b.x, y - b.y, z - b.z}; }
 
 vector_t vector_t::operator-() { return {-x, -y, -z}; }
@@ -165,7 +154,7 @@ double vector_t::dot(vector_t a, point_t b) {
   return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
 
-ray_t &ray_t::transform(mat4d_t transformation) { // should probably be void
+ray_t &ray_t::transform(mat4d_t transformation) {
   origin = origin * transformation;
   direction = direction * transformation;
   direction.normalize();
